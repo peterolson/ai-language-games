@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { SvelteToast } from '@zerodevx/svelte-toast';
+	import { t, locale, locales } from '$lib/translations';
 </script>
 
 <header>
-	<a href="/">Language games</a>
+	<a href="/">{$t('general.title')}</a>
+	<select bind:value={$locale}>
+		{#each $locales as l}
+			<option value={l}>{$t('lang.' + l)}</option>
+		{/each}
+	</select>
 	<SvelteToast />
 </header>
 <main>

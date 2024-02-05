@@ -3,6 +3,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { toast } from '@zerodevx/svelte-toast';
 	import { getWords, guessImage } from './api';
+	import { t } from '$lib/translations';
 
 	let ctx: CanvasRenderingContext2D | null = null;
 	let color = '#000000';
@@ -194,7 +195,7 @@
 		<button on:click={undo}>
 			<img src="icon/undo.svg" alt="Undo" />
 		</button>
-		<input type="reset" on:click={reset} />
+		<input type="reset" value={$t('general.reset')} on:click={reset} />
 	</footer>
 </section>
 
