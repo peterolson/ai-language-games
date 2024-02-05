@@ -2,13 +2,14 @@
 	import { speak } from '$lib/client/tts';
 	import { onDestroy, onMount } from 'svelte';
 	import { toast } from '@zerodevx/svelte-toast';
+	import { getWords, guessImage } from './api';
 
 	let ctx: CanvasRenderingContext2D | null = null;
 	let color = '#000000';
 	let strokeWidth = 5;
 	let hasChanges = false;
 
-	onMount(() => {
+	onMount(async () => {
 		const canvasContainer = document.querySelector('.canvas-container');
 		if (!canvasContainer) return;
 		const canvas = canvasContainer.querySelector('canvas');
@@ -19,6 +20,8 @@
 		canvas.height = length - 8;
 		ctx = canvas.getContext('2d');
 		clear();
+		const wordsToGuess = await getWords();
+		console.log(wordsToGuess);
 	});
 
 	function clear() {
@@ -113,22 +116,11 @@
 	async function getGuesses() {
 		if (!hasChanges) return;
 		if (!ctx) return;
-		const response = await fetch('/api/draw', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				image: ctx.canvas.toDataURL(),
-				pastGuesses: Array.from(pastGuesses)
-			})
-		});
-		const data = await response.json();
-		const { guesses } = data;
+		hasChanges = false;
+		const guesses = await guessImage(ctx, pastGuesses);
 		for (const guess of guesses) {
 			pastGuesses.add(guess);
 		}
-		hasChanges = false;
 		speechQueue = [...guesses, ...speechQueue];
 		if (!hasStartedSpeaking) {
 			hasStartedSpeaking = true;
@@ -137,6 +129,7 @@
 	}
 
 	let speakNextTimeout: NodeJS.Timeout;
+	let spokenWords = new Set<string>();
 	let isDestroyed = false;
 
 	async function speakNext() {
@@ -146,14 +139,18 @@
 			return;
 		}
 		const guess = speechQueue.shift();
-		if (!guess) return;
+		if (!guess || spokenWords.has(guess)) {
+			speakNextTimeout = setTimeout(speakNext, 100);
+			return;
+		}
 		toast.push(guess, {
 			theme: {
 				'--toastBarHeight': 0
 			}
 		});
 		await speak(guess);
-		speakNextTimeout = setTimeout(speakNext, 10);
+		spokenWords.add(guess);
+		speakNextTimeout = setTimeout(speakNext, 100);
 	}
 
 	let timeout = setTimeout(async function getGuessesInterval() {
@@ -166,7 +163,6 @@
 		isDestroyed = true;
 		clearTimeout(timeout);
 		clearTimeout(speakNextTimeout);
-		console.log('Draw page destroyed');
 	});
 </script>
 

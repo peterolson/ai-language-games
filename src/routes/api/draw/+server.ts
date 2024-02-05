@@ -1,4 +1,5 @@
 import { openai } from '$lib/server/openai';
+import { sampleArray } from '$lib/util';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -7,6 +8,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	let pastGuesses: string[] = body.pastGuesses;
 	if (!pastGuesses || !pastGuesses.length)
 		pastGuesses = ['Is it an elephant?', 'Is it a helicopter?', 'Is it a warehouse?'];
+	pastGuesses = sampleArray(pastGuesses, 15);
 
 	const response = await openai.chat.completions.create({
 		model: 'gpt-4-vision-preview',
