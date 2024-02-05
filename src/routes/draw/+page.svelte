@@ -3,12 +3,16 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { toast } from '@zerodevx/svelte-toast';
 	import { getWords, guessImage } from './api';
-	import { t } from '$lib/translations';
+	import { locale, t } from '$lib/translations';
+	import { selectedVoices } from '$lib/translations/voices';
 
 	let ctx: CanvasRenderingContext2D | null = null;
 	let color = '#000000';
 	let strokeWidth = 5;
 	let hasChanges = false;
+
+	let wordsToGuess: string[] = [];
+	let wordsToGuessCurrentIndex = 0;
 
 	onMount(async () => {
 		const canvasContainer = document.querySelector('.canvas-container');
@@ -21,8 +25,7 @@
 		canvas.height = length - 8;
 		ctx = canvas.getContext('2d');
 		clear();
-		const wordsToGuess = await getWords();
-		console.log(wordsToGuess);
+		wordsToGuess = await getWords();
 	});
 
 	function clear() {
@@ -118,7 +121,7 @@
 		if (!hasChanges) return;
 		if (!ctx) return;
 		hasChanges = false;
-		const guesses = await guessImage(ctx, pastGuesses);
+		const guesses = await guessImage(ctx, pastGuesses, $locale);
 		for (const guess of guesses) {
 			pastGuesses.add(guess);
 		}
@@ -149,7 +152,7 @@
 				'--toastBarHeight': 0
 			}
 		});
-		await speak(guess);
+		await speak(guess, $selectedVoices[$locale]);
 		spokenWords.add(guess);
 		speakNextTimeout = setTimeout(speakNext, 100);
 	}
@@ -168,6 +171,9 @@
 </script>
 
 <section>
+	<header>
+		<h2>&nbsp;{wordsToGuess[wordsToGuessCurrentIndex] ?? ''}&nbsp;</h2>
+	</header>
 	<div class="canvas-container">
 		<canvas
 			on:mousedown={mouseToCoord(startStroke)}
@@ -200,9 +206,18 @@
 </section>
 
 <style>
+	header {
+		padding: 8px;
+		display: flex;
+		justify-content: center;
+	}
+	header h2 {
+		margin: 0;
+		padding: 0;
+	}
 	section {
 		display: grid;
-		grid-template-rows: 1fr auto;
+		grid-template-rows: auto 1fr auto;
 		height: 100%;
 	}
 

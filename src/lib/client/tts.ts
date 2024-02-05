@@ -31,15 +31,22 @@ async function loadSDK(): Promise<typeof SpeechSDK> {
 	return sdk;
 }
 let audio: HTMLAudioElement;
-export async function speak(text: string) {
+export async function speak(text: string, voice: string) {
 	const sdk = await loadSDK();
 	const token = await getToken();
 	const speechConfig = sdk.SpeechConfig.fromAuthorizationToken(token, PUBLIC_MICROSOFT_TTS_REGION);
 	const synthesizer = new sdk.SpeechSynthesizer(speechConfig);
-	console.log('speak start', text);
+	const locale = voice.slice(0, 5);
+	console.log('speak start', text, voice);
+	const ssml = `<speak version='1.0' 
+		xmlns="http://www.w3.org/2001/10/synthesis" 
+		xmlns:mstts="https://www.w3.org/2001/mstts" 
+		xml:lang='${locale}'>
+			<voice name='${voice}'>${text}</voice>
+		</speak>`;
 	await new Promise((resolve, reject) => {
-		synthesizer.speakTextAsync(
-			text,
+		synthesizer.speakSsmlAsync(
+			ssml,
 			async (result) => {
 				await new Promise((resolve) => setTimeout(resolve, result.audioDuration / 10000));
 				resolve(result);

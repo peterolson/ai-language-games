@@ -1,0 +1,5 @@
+{
+    "draw.what_is_this": "What is this?",
+    "draw.initial_guesses": ["Is it an elephant?", "Maybe it's a dolphin or some other marine mammal.", "I think it's a car.", "Could it be a surfboard on the waves?", "I see a bear."],
+    "draw.wrong": "That's not it. Try again."
+}

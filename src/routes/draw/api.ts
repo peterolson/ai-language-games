@@ -5,7 +5,8 @@ export async function getWords() {
 
 export async function guessImage(
 	ctx: CanvasRenderingContext2D,
-	pastGuesses: Set<string>
+	pastGuesses: Set<string>,
+	lang: string
 ): Promise<string[]> {
 	const response = await fetch('/api/draw', {
 		method: 'POST',
@@ -14,7 +15,8 @@ export async function guessImage(
 		},
 		body: JSON.stringify({
 			image: ctx.canvas.toDataURL(),
-			pastGuesses: Array.from(pastGuesses)
+			pastGuesses: Array.from(pastGuesses),
+			lang
 		})
 	});
 	const data = await response.json();
